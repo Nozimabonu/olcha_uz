@@ -1,3 +1,4 @@
+from typing import Any
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
@@ -15,29 +16,28 @@ class BaseModel(models.Model):
 
 
 class Category(BaseModel):
-    category_name = models.CharField(max_length=100)
-    slug = models.SlugField(null=False, blank=True)
-    image = models.ImageField(upload_to='images/')
+    category_name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(blank=True)
+    image = models.ImageField(upload_to='media/images/category/')
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.category_name)
 
-            super(Category, self).save(*args, **kwargs)
+        super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.category_name
 
     class Meta:
         verbose_name_plural = 'Categories'
-        db_table = 'categories'
 
 
 class Group(BaseModel):
     group_name = models.CharField(max_length=100)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True)
+    image = models.ImageField(upload_to='media/images/group/')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='groups')
-    image = models.ImageField(upload_to='images/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -53,20 +53,23 @@ class Group(BaseModel):
 
 
 class Product(BaseModel):
-    product_name = models.CharField(max_length=100, null=False, blank=True)
-    description = models.TextField(null=True, blank=True)
-    price = models.IntegerField(null=True, blank=True)
+    product_name = models.CharField(max_length=100)
+    slug = models.SlugField(null=True, blank=True)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=7, decimal_places=2)
     # quantity = models.IntegerField(null=True, blank=True)
     discount = models.IntegerField(default=0)
-    slug = models.SlugField(null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='products')
-    users_like = models.ManyToManyField(User, related_name='likes', blank=True, db_table='users_like')
+    users_like = models.ManyToManyField(User, related_name='liked_product', blank=True)
+
+    def __str__(self):
+        return self.product_name
+
 
     @property
-    def discount_price(self):
+    def discount_price(self) -> Any:
         if self.discount > 0:
-            return self.price * (self.discount / 100)
-
+            return self.price * (1 - (self.discount / 100.0))
         return self.price
 
     def save(self, *args, **kwargs):
@@ -75,23 +78,17 @@ class Product(BaseModel):
 
         super(Product, self).save(*args, **kwargs)
 
-    def __str__(self):
-        return self.product_name
-
     class Meta:
-        db_table = 'products'
+        ordering = ['-created_at']
 
 
 class Image(models.Model):
-    image_name = models.ImageField(upload_to='images/')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_images', null=True, blank=True)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group_images', null=True, blank=True)
-    # category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category_images', null=True,
-    #                              blank=True)
+    image_name = models.ImageField(upload_to='media/images/products/')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     is_primary = models.BooleanField(default=False)
 
-    class Meta:
-        db_table = 'images'
+    def __str__(self):
+        return self.image_name
 
 
 class Comment(BaseModel):
@@ -103,31 +100,25 @@ class Comment(BaseModel):
         four = 4
         five = 5
 
-    rating = models.IntegerField(choices=RatingChoices.choices, default=RatingChoices.zero.value, null=True, blank=True)
     message = models.TextField()
-    file = models.FileField(upload_to='comments/', null=True, blank=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    rating = models.IntegerField(choices=RatingChoices.choices, default=RatingChoices.one.value)
+    file = models.FileField(upload_to='comments/')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
 
     class Meta:
         db_table = 'comments'
 
 
-class AttributeKey(models.Model):
-    attribute_key = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.attribute_key
+class Key(BaseModel):
+    key_name = models.CharField(max_length=100)
 
 
-class AttributeValue(models.Model):
-    attribute_value = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.attribute_value
+class Value(BaseModel):
+    value_name = models.CharField(max_length=100)
 
 
-class AttributeProduct(models.Model):
-    key = models.ForeignKey(AttributeKey, on_delete=models.CASCADE)
-    value = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
+class Attribute(models.Model):
+    key = models.ForeignKey(Key, on_delete=models.CASCADE)
+    value = models.ForeignKey(Value, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-

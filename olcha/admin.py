@@ -9,9 +9,9 @@ from olcha import models
 admin.site.unregister(models.User)
 admin.site.register(models.Image)
 admin.site.register(models.Comment)
-admin.site.register(models.AttributeKey)
-admin.site.register(models.AttributeValue)
-admin.site.register(models.AttributeProduct)
+admin.site.register(models.Key)
+admin.site.register(models.Value)
+admin.site.register(models.Attribute)
 
 
 @admin.register(models.Category)
