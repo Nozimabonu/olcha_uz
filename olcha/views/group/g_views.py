@@ -1,8 +1,4 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.status import HTTP_200_OK
 from olcha.models import Group
 from olcha.serializers import GroupModelSerializer
 
@@ -17,6 +13,11 @@ class GroupListApiView(generics.ListCreateAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupModelSerializer
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        queryset = Group.objects.all()
+        queryset = queryset.select_related('category')
+        return queryset
 
 
 # class GroupListApiView(APIView):

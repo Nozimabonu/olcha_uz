@@ -1,5 +1,4 @@
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from olcha.views.category import c_views as c_views
 from olcha.views.group import g_views as g_views
 from olcha.views.product import p_views as p_views

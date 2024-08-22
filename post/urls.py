@@ -15,6 +15,6 @@ from post import views
 
 
 urlpatterns = [
-    path('post-list/', views.PostCreateAPIView.as_view()),
-    path('post-list/<int:pk>', views.PostDetail.as_view())
+    path('post-list/', views.PostApiView.as_view()),
+    path('post-list/<int:pk>', views.PostDetailApiView.as_view())
 ]

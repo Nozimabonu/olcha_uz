@@ -122,4 +122,4 @@ class Value(BaseModel):
 class Attribute(models.Model):
     key = models.ForeignKey(Key, on_delete=models.CASCADE)
     value = models.ForeignKey(Value, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,related_name='attributes')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attributes')

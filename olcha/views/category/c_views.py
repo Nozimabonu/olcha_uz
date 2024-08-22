@@ -1,7 +1,5 @@
-from django.shortcuts import render
 from rest_framework import status
-from rest_framework.generics import ListAPIView, GenericAPIView,CreateAPIView,UpdateAPIView,RetrieveAPIView,DestroyAPIView
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,7 +13,7 @@ from olcha.serializers import CategoryModelSerializer
 class CategoryListApiView(APIView):
     def get(self, request):
         categories = Category.objects.all()
-        serializer = CategoryModelSerializer(categories, many=True,context={'request':request})
+        serializer = CategoryModelSerializer(categories, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -24,6 +22,7 @@ class CategoryListApiView(APIView):
             serializer.save()
             return Response('Product Successfully Created', status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # ListOrCreate
 
@@ -102,4 +101,3 @@ class CategoryDeleteApiView(APIView):
                 'status': 200
             }
             return Response(data)
-

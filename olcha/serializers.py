@@ -1,12 +1,12 @@
 from django.contrib.auth.models import User
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.db.models.functions import Round
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
 
-from olcha.models import Category, Group, Product, Image
+from olcha.models import Category, Group, Product
 
 
 class CategoryModelSerializer(ModelSerializer):
@@ -29,6 +29,7 @@ class GroupModelSerializer(ModelSerializer):
     product_count = serializers.SerializerMethodField()
 
     def get_product_count(self, instance):
+        products = Product.objects.annotate(order_count=Count('order'))
         return instance.products.count()
 
     def foo(self, obj):
